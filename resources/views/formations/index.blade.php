@@ -120,6 +120,8 @@
     .tag.premium { color: #4B5563; }
     .tag.certifiante { color: var(--primary-green); }
     .tag.eligible { color: #6B7280; }
+    .tag.flash { color: #B45309; background: #FEF3C7; border-color: #F59E0B; opacity: 1; display: inline-flex; align-items: center; gap: .3rem; }
+    .tag.flash i { color: #F59E0B; }
 
     .hidden-by-search { display: none !important; }
     .collapsed-panel { display: none; }
@@ -326,6 +328,9 @@
                                                             @endif
                                                         </div>
                                                         <div class="tags">
+                                                            @if(preg_match('/^3\s*h(eures?)?$/i', trim((string) $cours->duree)))
+                                                                <span class="tag flash"><i class="fas fa-bolt"></i> Flash</span>
+                                                            @endif
                                                             @if($cours->etiquette)
                                                                 <span class="tag {{ $cours->etiquette }}">
                                                                     {{ $labels[$cours->etiquette] ?? strtoupper($cours->etiquette) }}
