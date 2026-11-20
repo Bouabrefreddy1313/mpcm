@@ -853,6 +853,166 @@ body {
     color: var(--text-gray);
 }
 
+/* Visites du site */
+.visites-resume {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.visites-carte {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.visites-carte-icone {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--white);
+    flex-shrink: 0;
+}
+
+.visites-carte.blue .visites-carte-icone { background: linear-gradient(135deg, var(--primary-blue), #4A7AB8); }
+.visites-carte.orange .visites-carte-icone { background: linear-gradient(135deg, var(--primary-orange), #E76F51); }
+.visites-carte.green .visites-carte-icone { background: linear-gradient(135deg, var(--success-green), #38A169); }
+
+.visites-chiffre {
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.visites-sous {
+    font-size: 0.82rem;
+    color: var(--text-gray);
+}
+
+.visites-graphe-carte {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem 1rem;
+}
+
+.visites-graphe-titre {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.visites-legende {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-gray);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.visites-legende i {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--primary-blue);
+    display: inline-block;
+}
+
+.visites-graphe {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 220px;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+.visites-barre {
+    flex: 1 1 0;
+    min-width: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+}
+
+.visites-barre-valeur {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-gray);
+    margin-bottom: 3px;
+    font-variant-numeric: tabular-nums;
+}
+
+.visites-barre-remplie {
+    width: 100%;
+    max-width: 38px;
+    background: var(--primary-blue);
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+    transition: height 0.5s ease, background 0.2s ease;
+}
+
+.visites-barre:hover .visites-barre-remplie { background: var(--primary-orange); }
+.visites-barre.vide .visites-barre-remplie { background: var(--border-color); }
+
+.visites-barre-bulle {
+    display: none;
+    position: absolute;
+    bottom: calc(100% - 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-dark);
+    color: var(--white);
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.visites-barre:hover .visites-barre-bulle { display: block; }
+
+.visites-axe {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.visites-axe span {
+    flex: 1 1 0;
+    min-width: 16px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-gray);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.visites-note {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin: 0.9rem 0 0;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .sidebar {
@@ -1136,6 +1296,50 @@ body {
                     </div>
                 </div>
             </div>
+
+            <!-- ===== SECTION VISITES DU SITE ===== -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line" style="color: var(--primary-blue); margin-right: 8px;"></i>
+                        Visites du site
+                    </h2>
+                    <div class="section-actions" role="tablist">
+                        <button type="button" class="btn-filter active" data-visites="jour"><i class="fas fa-calendar-day"></i><span>Par jour</span></button>
+                        <button type="button" class="btn-filter" data-visites="semaine"><i class="fas fa-calendar-week"></i><span>Par semaine</span></button>
+                        <button type="button" class="btn-filter" data-visites="mois"><i class="fas fa-calendar-alt"></i><span>Par mois</span></button>
+                    </div>
+                </div>
+
+                <div class="visites-resume">
+                    @foreach ([
+                        'jour'    => ["Aujourd'hui", 'fa-sun', 'blue'],
+                        'semaine' => ['Cette semaine', 'fa-calendar-week', 'orange'],
+                        'mois'    => ['Ce mois-ci', 'fa-calendar-alt', 'green'],
+                    ] as $cle => [$libelle, $icone, $couleur])
+                        <div class="visites-carte {{ $couleur }}">
+                            <div class="visites-carte-icone"><i class="fas {{ $icone }}"></i></div>
+                            <div>
+                                <div class="stat-label">{{ $libelle }}</div>
+                                <div class="visites-chiffre">{{ number_format($visites['resume'][$cle]['visiteurs'], 0, ',', ' ') }}</div>
+                                <div class="visites-sous">visiteurs · {{ number_format($visites['resume'][$cle]['pages'], 0, ',', ' ') }} pages vues</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="visites-graphe-carte">
+                    <div class="visites-graphe-titre">
+                        <span id="visitesTitre">Visiteurs uniques — 30 derniers jours</span>
+                        <span class="visites-legende"><i></i> Visiteurs uniques</span>
+                    </div>
+                    <div class="visites-graphe" id="visitesGraphe"></div>
+                    <p class="visites-note">
+                        Ne sont comptées que les pages publiques du site. Les pages d'administration, les utilisateurs connectés et les robots sont exclus.
+                    </p>
+                </div>
+            </div>
+            <!-- ===== FIN SECTION VISITES DU SITE ===== -->
 
             <!-- Quick Actions -->
             <div class="content-section">
@@ -1631,7 +1835,60 @@ body {
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
+    initVisites();
 });
+
+// ========================================
+// VISITES DU SITE (jour / semaine / mois)
+// ========================================
+
+const VISITES_SERIES = @json($visites['series']);
+const VISITES_TITRES = {
+    jour: 'Visiteurs uniques — 30 derniers jours',
+    semaine: 'Visiteurs uniques — 12 dernières semaines',
+    mois: 'Visiteurs uniques — 12 derniers mois'
+};
+
+function initVisites() {
+    const boutons = document.querySelectorAll('[data-visites]');
+    boutons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            boutons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            afficherVisites(btn.dataset.visites);
+        });
+    });
+    afficherVisites('jour');
+}
+
+function afficherVisites(periode) {
+    const serie = VISITES_SERIES[periode] || [];
+    const graphe = document.getElementById('visitesGraphe');
+    document.getElementById('visitesTitre').textContent = VISITES_TITRES[periode];
+
+    const max = Math.max(1, ...serie.map(p => p.visiteurs));
+    // En vue « par jour », on n'affiche qu'une étiquette sur trois pour rester lisible
+    const pas = periode === 'jour' ? 3 : 1;
+
+    graphe.innerHTML = serie.map(p => `
+        <div class="visites-barre ${p.visiteurs === 0 ? 'vide' : ''}">
+            <div class="visites-barre-bulle">${p.detail}<br><strong>${p.visiteurs}</strong> visiteurs · ${p.pages} pages vues</div>
+            ${periode !== 'jour' && p.visiteurs > 0 ? `<span class="visites-barre-valeur">${p.visiteurs}</span>` : ''}
+            <div class="visites-barre-remplie" style="height: ${(p.visiteurs / max) * 85}%"></div>
+        </div>
+    `).join('');
+
+    let axe = graphe.nextElementSibling;
+    if (!axe || !axe.classList.contains('visites-axe')) {
+        axe = document.createElement('div');
+        axe.className = 'visites-axe';
+        graphe.after(axe);
+    }
+    axe.innerHTML = serie.map((p, i) => {
+        const montrer = (serie.length - 1 - i) % pas === 0;
+        return `<span>${montrer ? p.label : ''}</span>`;
+    }).join('');
+}
 
 function initializeDashboard() {
     initSidebar();
@@ -2012,7 +2269,7 @@ function initCounters() {
 // ========================================
 
 function initFilters() {
-    const filterButtons = document.querySelectorAll('.btn-filter');
+    const filterButtons = document.querySelectorAll('.btn-filter[data-filter]');
     const actionCards = document.querySelectorAll('.action-card');
 
     filterButtons.forEach(button => {

@@ -32,7 +32,10 @@ Route::get('/dashboard', function () {
     // Liste des cours avec leur nombre d'avis, pour la section "Liens d'évaluation"
     $coursList = Cours::withCount('avis')->orderBy('titre')->get();
 
-    return view('dashboard', compact('stats', 'coursList'));
+    // Statistiques de visites (jour / semaine / mois)
+    $visites = \App\Support\VisiteStats::pourDashboard();
+
+    return view('dashboard', compact('stats', 'coursList', 'visites'));
 })->name('dashboard');
 
 Route::get('/admin/telechargements', [FormationController::class, 'televoir'])
