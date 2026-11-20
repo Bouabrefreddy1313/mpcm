@@ -26,7 +26,65 @@ class VisiteStats
                 'semaine' => self::parSemaine($aujourdhui, 12),
                 'mois'    => self::parMois($aujourdhui, 12),
             ],
+            'details' => [
+                'jour'    => self::details($aujourdhui, $aujourdhui),
+                'semaine' => self::details($aujourdhui->copy()->startOfWeek(), $aujourdhui),
+                'mois'    => self::details($aujourdhui->copy()->startOfMonth(), $aujourdhui),
+            ],
+            'dernieres'      => self::dernieresVisites(25),
+            'geo_active'     => InfosVisiteur::geolocalisationActive(),
         ];
+    }
+
+    /** Répartition des visiteurs uniques par pays, ville, appareil… sur une période */
+    private static function details(Carbon $debut, Carbon $fin): array
+    {
+        $periode = fn () => DB::table('visites')->whereBetween('jour', [$debut->toDateString(), $fin->toDateString()]);
+
+        $repartir = function (string $expr, int $limite = 8) use ($periode) {
+            return $periode()
+                ->selectRaw("$expr AS nom, COUNT(DISTINCT visiteur) AS visiteurs")
+                ->groupByRaw($expr)
+                ->orderByDesc('visiteurs')
+                ->limit($limite)
+                ->get()
+                ->map(fn ($l) => ['nom' => $l->nom, 'visiteurs' => (int) $l->visiteurs])
+                ->all();
+        };
+
+        return [
+            'pays'        => $repartir("COALESCE(pays, 'Inconnu')"),
+            'villes'      => $repartir("CONCAT(COALESCE(ville, 'Ville inconnue'), ' · ', COALESCE(code_pays, '?'))"),
+            'appareils'   => $repartir("COALESCE(appareil, 'Inconnu')", 3),
+            'navigateurs' => $repartir("COALESCE(navigateur, 'Inconnu')"),
+            'systemes'    => $repartir("COALESCE(systeme, 'Inconnu')"),
+            'sources'     => $repartir("COALESCE(source, 'Inconnue')"),
+            'pages'       => $periode()
+                ->selectRaw('page AS nom, COUNT(*) AS visiteurs')
+                ->groupBy('page')
+                ->orderByDesc('visiteurs')
+                ->limit(10)
+                ->get()
+                ->map(fn ($l) => ['nom' => $l->nom, 'visiteurs' => (int) $l->visiteurs])
+                ->all(),
+        ];
+    }
+
+    private static function dernieresVisites(int $nb): array
+    {
+        return DB::table('visites')
+            ->orderByDesc('id')
+            ->limit($nb)
+            ->get(['created_at', 'page', 'pays', 'code_pays', 'ville', 'appareil', 'navigateur', 'systeme', 'source'])
+            ->map(fn ($v) => [
+                'quand'    => Carbon::parse($v->created_at)->format('d/m H:i'),
+                'page'     => $v->page,
+                'lieu'     => trim(($v->ville ? $v->ville . ', ' : '') . ($v->pays ?? 'Inconnu')),
+                'appareil' => $v->appareil,
+                'navigateur' => trim(($v->navigateur ?? '') . ' · ' . ($v->systeme ?? ''), ' ·'),
+                'source'   => $v->source,
+            ])
+            ->all();
     }
 
     private static function compter(Carbon $debut, Carbon $fin): array

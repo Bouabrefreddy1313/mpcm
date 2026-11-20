@@ -1013,6 +1013,135 @@ body {
     margin: 0.9rem 0 0;
 }
 
+.visites-detail-entete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1.75rem 0 1rem;
+}
+
+.visites-sous-titre {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.visites-periode {
+    display: inline-flex;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.visites-periode button {
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-gray);
+    cursor: pointer;
+}
+
+.visites-periode button.active {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.visites-alerte {
+    background: var(--light-yellow);
+    border: 1px solid #F3DE8A;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.visites-alerte code { font-size: 0.8rem; }
+
+.visites-detail-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.visites-detail-carte {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    min-width: 0;
+}
+
+.visites-detail-carte.large { grid-column: 1 / -1; }
+
+.visites-detail-titre {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.visites-detail-titre i { color: var(--primary-blue); }
+
+.visites-liste {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.visites-ligne-haut {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.87rem;
+}
+
+.visites-ligne-nom {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.visites-ligne-valeur {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.visites-ligne-barre {
+    height: 6px;
+    background: var(--bg-light);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.visites-ligne-barre span {
+    display: block;
+    height: 100%;
+    background: var(--primary-blue);
+    border-radius: 6px;
+}
+
+.visites-vide {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.visites-table { font-size: 0.85rem; }
+.visites-table th { color: var(--text-gray); font-weight: 600; white-space: nowrap; }
+.visites-page { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* Responsive */
 @media (max-width: 1024px) {
     .sidebar {
@@ -1337,6 +1466,70 @@ body {
                     <p class="visites-note">
                         Ne sont comptées que les pages publiques du site. Les pages d'administration, les utilisateurs connectés et les robots sont exclus.
                     </p>
+                </div>
+
+                <!-- Détail des visiteurs -->
+                <div class="visites-detail-entete">
+                    <h3 class="visites-sous-titre">D'où viennent les visiteurs ?</h3>
+                    <div class="visites-periode" role="tablist">
+                        <button type="button" class="active" data-detail="jour">Aujourd'hui</button>
+                        <button type="button" data-detail="semaine">Cette semaine</button>
+                        <button type="button" data-detail="mois">Ce mois-ci</button>
+                    </div>
+                </div>
+
+                @unless ($visites['geo_active'])
+                    <div class="visites-alerte">
+                        <i class="fas fa-info-circle"></i>
+                        La localisation (pays, ville) n'est pas encore activée : il manque le fichier de géolocalisation
+                        <code>storage/{{ \App\Support\InfosVisiteur::FICHIER_GEO }}</code>. Les autres informations sont déjà enregistrées.
+                    </div>
+                @endunless
+
+                <div class="visites-detail-grille">
+                    @foreach ([
+                        'pays'        => ['Pays', 'fa-globe-africa'],
+                        'villes'      => ['Villes', 'fa-city'],
+                        'sources'     => ['Provenance', 'fa-share-alt'],
+                        'appareils'   => ['Appareils', 'fa-mobile-alt'],
+                        'navigateurs' => ['Navigateurs', 'fa-compass'],
+                        'systemes'    => ['Systèmes', 'fa-laptop'],
+                    ] as $cle => [$titre, $icone])
+                        <div class="visites-detail-carte">
+                            <div class="visites-detail-titre"><i class="fas {{ $icone }}"></i> {{ $titre }}</div>
+                            <ul class="visites-liste" data-liste="{{ $cle }}"></ul>
+                        </div>
+                    @endforeach
+                    <div class="visites-detail-carte large">
+                        <div class="visites-detail-titre"><i class="fas fa-file-alt"></i> Pages les plus vues</div>
+                        <ul class="visites-liste" data-liste="pages" data-unite="vues"></ul>
+                    </div>
+                </div>
+
+                <!-- Dernières visites -->
+                <div class="visites-graphe-carte" style="margin-top: 1.25rem;">
+                    <div class="visites-graphe-titre"><span><i class="fas fa-history" style="color: var(--primary-blue);"></i> Dernières visites</span></div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle visites-table mb-0">
+                            <thead>
+                                <tr><th>Date</th><th>Page</th><th>Lieu</th><th>Appareil</th><th>Navigateur</th><th>Provenance</th></tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($visites['dernieres'] as $v)
+                                    <tr>
+                                        <td class="text-nowrap">{{ $v['quand'] }}</td>
+                                        <td class="visites-page" title="{{ $v['page'] }}">{{ $v['page'] }}</td>
+                                        <td>{{ $v['lieu'] }}</td>
+                                        <td>{{ $v['appareil'] ?? '—' }}</td>
+                                        <td>{{ $v['navigateur'] ?: '—' }}</td>
+                                        <td>{{ $v['source'] ?? '—' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Aucune visite enregistrée pour le moment.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <!-- ===== FIN SECTION VISITES DU SITE ===== -->
@@ -1859,6 +2052,47 @@ function initVisites() {
         });
     });
     afficherVisites('jour');
+
+    const boutonsDetail = document.querySelectorAll('[data-detail]');
+    boutonsDetail.forEach(btn => {
+        btn.addEventListener('click', () => {
+            boutonsDetail.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            afficherDetails(btn.dataset.detail);
+        });
+    });
+    afficherDetails('jour');
+}
+
+const VISITES_DETAILS = @json($visites['details']);
+
+function echapper(texte) {
+    const div = document.createElement('div');
+    div.textContent = texte ?? '';
+    return div.innerHTML;
+}
+
+function afficherDetails(periode) {
+    const donnees = VISITES_DETAILS[periode] || {};
+    document.querySelectorAll('[data-liste]').forEach(ul => {
+        const lignes = donnees[ul.dataset.liste] || [];
+        const unite = ul.dataset.unite || 'visiteurs';
+        if (lignes.length === 0) {
+            ul.innerHTML = '<li class="visites-vide">Aucune donnée sur cette période.</li>';
+            return;
+        }
+        const total = lignes.reduce((s, l) => s + l.visiteurs, 0);
+        const max = Math.max(...lignes.map(l => l.visiteurs));
+        ul.innerHTML = lignes.map(l => `
+            <li>
+                <div class="visites-ligne-haut">
+                    <span class="visites-ligne-nom" title="${echapper(l.nom)}">${echapper(l.nom)}</span>
+                    <span class="visites-ligne-valeur">${l.visiteurs} ${unite === 'vues' ? 'vues' : ''}${unite !== 'vues' ? `<small class="text-muted"> · ${Math.round(l.visiteurs / total * 100)} %</small>` : ''}</span>
+                </div>
+                <div class="visites-ligne-barre"><span style="width: ${(l.visiteurs / max) * 100}%"></span></div>
+            </li>
+        `).join('');
+    });
 }
 
 function afficherVisites(periode) {

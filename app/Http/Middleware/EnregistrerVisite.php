@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\InfosVisiteur;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,12 +29,12 @@ class EnregistrerVisite
 
         try {
             if ($this->doitEtreCompte($request, $response)) {
-                DB::table('visites')->insert([
+                DB::table('visites')->insert(array_merge([
                     'visiteur'   => hash('sha256', $request->ip() . '|' . $request->userAgent() . '|' . config('app.key')),
                     'page'       => mb_substr('/' . ltrim($request->path(), '/'), 0, 255),
                     'jour'       => now()->toDateString(),
                     'created_at' => now(),
-                ]);
+                ], InfosVisiteur::depuis($request)));
             }
         } catch (\Throwable $e) {
             // Le comptage ne doit jamais bloquer l'affichage du site
